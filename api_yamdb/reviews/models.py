@@ -11,14 +11,30 @@ class User(AbstractUser):
         (MODERATOR, MODERATOR),
         (ADMIN, ADMIN),
     ]
-
-    email = models.EmailField(('email address'), blank=False, unique=True)
+    username = models.CharField(
+        max_length=150,
+        blank=False,
+        unique=True
+    )
+    first_name = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+    last_name = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+    email = models.EmailField(
+        max_length=254,
+        blank=False,
+        unique=True
+    )
     bio = models.TextField(blank=True)
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
         default=USER,
-        )
+    )
     confirmation_code = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
