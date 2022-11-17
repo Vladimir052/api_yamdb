@@ -16,6 +16,6 @@ class GenresViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
 
-class CategoriesiewSet(viewsets.ReadOnlyModelViewSet):
+class CategoriesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
