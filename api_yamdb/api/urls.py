@@ -1,35 +1,24 @@
-"""YaMDb URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from rest_framework.routers import  DefaultRouter
-from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
-from .views import GenresViewSet, CategoriesViewSet, TitlesViewSet, ReviewsViewSet
-router = DefaultRouter()
-router.register('titles', TitlesViewSet, basename='titles')
-router.register('categories', CategoriesViewSet, basename='categories')
-router.register('genres', GenresViewSet, basename='genres')
-router.register('reviews', ReviewsViewSet, basename='reviews')
+from rest_framework import routers
+
+from .views import (CategoryViewSet, CommentViewSet, GenreViewSet,
+                    ReviewViewSet, TitleViewSet, UserViewSet,
+                    confirmation_code, get_jwt_token)
+
+router = routers.SimpleRouter()
+router.register('users', UserViewSet, basename='users')
+router.register(r'titles', TitleViewSet, basename='titles')
+router.register(r'titles/(?P<title_id>\d+)/reviews',
+                ReviewViewSet, basename='reviews')
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)'
+                r'/comments', CommentViewSet, basename='comments')
+router.register(r'categories', CategoryViewSet, basename='categories')
+router.register(r'genres', GenreViewSet, basename='categories')
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path(
-        'redoc/',
-        TemplateView.as_view(template_name='redoc.html'),
-        name='redoc'
-    ),
+    path('v1/auth/signup/', confirmation_code, name='signup'),
+    path('v1/auth/token/', get_jwt_token, name='token'),
     path('v1/', include(router.urls)),
 ]
+

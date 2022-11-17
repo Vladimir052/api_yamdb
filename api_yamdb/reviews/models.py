@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 from django.core.exceptions import ValidationError
 import datetime
@@ -19,7 +20,9 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         blank=False,
-        unique=True
+        unique=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$')]
     )
     first_name = models.CharField(
         max_length=150,
@@ -43,7 +46,40 @@ class User(AbstractUser):
     confirmation_code = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        ordering = ['id']
+        ordering = ['username']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username
+
+
+class Comment(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='отзыв'
+    )
+    text = models.CharField(
+        'текст комментария',
+        max_length=200
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='автор'
+    )
+    pub_date = models.DateTimeField(
+        'дата публикации',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.username
