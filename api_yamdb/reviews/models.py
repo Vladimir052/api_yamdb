@@ -1,5 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
+import datetime
+
+from .validators import validator_year
+
 
 
 class User(AbstractUser):
@@ -45,7 +50,7 @@ class User(AbstractUser):
 
 
 class Genres(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.TextField(max_length=256)
     slug  = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
@@ -53,7 +58,7 @@ class Genres(models.Model):
 
 
 class Categories(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.TextField(max_length=256)
     slug  = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
@@ -62,24 +67,35 @@ class Categories(models.Model):
 
 class Titles(models.Model):
     name = models.CharField(max_length=200)
-    year  = models.DateField(auto_now_add=True)
+    year  = models.IntegerField(validators=(validator_year,))
     description = models.TextField()
     genre = models.ForeignKey(
-        Genres, on_delete=models.CASCADE, related_name='titles'
+        Genres, on_delete=models.SET_NULL, related_name='titles', blank=True,
+        null=True
     )
     category = models.ForeignKey(
-        Categories, on_delete=models.CASCADE, related_name='titles'
+        Categories, on_delete=models.SET_NULL, related_name='titles', blank=True,
+        null=True
     )
+
+    class Meta:
+        unique_together = ('genre', 'category')
+
     def __str__(self):
         return self.name
+        
 
 
 class Reviews(models.Model):
-    text = models.CharField(max_length=256)
+    text = models.TextField()
     author  = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
     score  = models.IntegerField()
     pub_date  = models.DateField(auto_now_add=True)
+    title = models.ForeignKey(
+        Titles, on_delete=models.CASCADE, related_name='reviews'
+    )
+
     def __str__(self):
         return self.text
