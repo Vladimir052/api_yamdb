@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
 from reviews.models import User
+
 from .validators import check_username
 
 

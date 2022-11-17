@@ -5,7 +5,6 @@ from .views import (CategoryViewSet, CommentViewSet, GenreViewSet,
                     ReviewViewSet, TitleViewSet, UserViewSet,
                     confirmation_code, get_jwt_token)
 
-
 router = routers.SimpleRouter()
 router.register('users', UserViewSet, basename='users')
 router.register(r'titles', TitleViewSet, basename='titles')
