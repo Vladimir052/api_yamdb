@@ -75,4 +75,45 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
+        return self.username
+
+
+class Genres(models.Model):
+    name = models.CharField(max_length=256)
+    slug  = models.SlugField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Categories(models.Model):
+    name = models.CharField(max_length=256)
+    slug  = models.SlugField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Titles(models.Model):
+    name = models.CharField(max_length=200)
+    year  = models.DateField(auto_now_add=True)
+    description = models.TextField()
+    genre = models.ForeignKey(
+        Genres, on_delete=models.CASCADE, related_name='titles'
+    )
+    category = models.ForeignKey(
+        Categories, on_delete=models.CASCADE, related_name='titles'
+    )
+    def __str__(self):
+        return self.name
+
+
+class Reviews(models.Model):
+    text = models.CharField(max_length=256)
+    author  = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score  = models.IntegerField()
+    pub_date  = models.DateField(auto_now_add=True)
+    def __str__(self):
         return self.text
