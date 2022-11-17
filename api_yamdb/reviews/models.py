@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -14,7 +15,9 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         blank=False,
-        unique=True
+        unique=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$')]
     )
     first_name = models.CharField(
         max_length=150,
@@ -38,7 +41,7 @@ class User(AbstractUser):
     confirmation_code = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        ordering = ['id']
+        ordering = ['username']
 
     def __str__(self):
         return self.username
