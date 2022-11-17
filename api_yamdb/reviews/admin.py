@@ -8,3 +8,4 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'role')
     list_filter = ('role', )
     search_fields = ('username__startswith', )
+    
