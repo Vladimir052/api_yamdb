@@ -1,11 +1,9 @@
 from django.urls import include, path
 from rest_framework import routers
 
-
-from .views import (CategoriesViewSet, GenresViewSet,CommentViewSet,
-                    TitlesViewSet, UserViewSet, ReviewsViewSet,
-                    send_jwt_token, send_confirmation_code)
-
+from .views import (CategoriesViewSet, CommentViewSet, GenresViewSet,
+                    ReviewsViewSet, TitlesViewSet, UserViewSet,
+                    send_confirmation_code, send_jwt_token)
 
 router = routers.SimpleRouter()
 router.register('users', UserViewSet, basename='users')
@@ -24,4 +22,3 @@ urlpatterns = [
     path('v1/auth/token/', send_jwt_token, name='token'),
     path('v1/', include(router.urls)),
 ]
-

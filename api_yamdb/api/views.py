@@ -1,5 +1,3 @@
-import uuid
-
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -8,25 +6,21 @@ from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .permissions import AdminOrReadOnly
-
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.pagination import PageNumberPagination
-from reviews.models import Categories, Genres, Titles, User, Reviews, Comment
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
-from .permissions import AdminOnly
+from .mixins import (ListCreateDeleteViewSet,
+                     UpdateDeleteViewSet)
+from .permissions import (AdminOnly, AdminOrReadOnly,
+                        OwnerAdminModeratorOrReadOnly)
+from .serializers import (CategoriesSerializer, CommentSerializer,
+                          EmailSerializer, GenresSerializer, ReviewsSerializer,
+                          TitlesSerializer, TokenSerializer,
+                          UserInfoSerializer, UserSerializer)
 
-from .serializers import (CategoriesSerializer,
-                          EmailSerializer, GenresSerializer,
-                          TitlesSerializer, ReviewsSerializer,
-                          TokenSerializer, UserInfoSerializer, CommentSerializer,
-                          UserSerializer)
-
-
-from .mixins import (ListCreateDeleteViewSet, UpdateDeleteViewSet,
-                     ListRetriveCreateDeleteViewSet)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -102,20 +96,26 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitlesSerializer
     filter_backends = (DjangoFilterBackend)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (AdminOrReadOnly,)
 
+
 class GenresViewSet(ListCreateDeleteViewSet):
+    lookup_field = 'slug'
     queryset = Genres.objects.all()
+    pagination_class = LimitOffsetPagination
     serializer_class = GenresSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
 
+
 class CategoriesViewSet(ListCreateDeleteViewSet):
+    lookup_field = 'slug'
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
+
 
 class ReviewsViewSet(UpdateDeleteViewSet):
     queryset = Reviews.objects.all()
@@ -123,5 +123,16 @@ class ReviewsViewSet(UpdateDeleteViewSet):
     
 
 class CommentViewSet(UpdateDeleteViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = (OwnerAdminModeratorOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        review = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Reviews, id=review_id, title=title_id)
+        serializer.save(author=self.request.user, review=review)

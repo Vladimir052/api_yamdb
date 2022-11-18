@@ -3,8 +3,7 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-
-from reviews.models import Categories, Genres, Reviews, Titles, User, Comment
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
 from .validators import check_username
 
@@ -23,15 +22,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class EmailSerializer(serializers.Serializer):
+    """Email serializer"""
     email = serializers.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
 
 
 class TokenSerializer(serializers.Serializer):
+    """Token serializer"""
     email = serializers.EmailField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
 class UserInfoSerializer(UserSerializer):
+    """User info serializer"""
     role = serializers.CharField(read_only=True)
 
     class Meta:
@@ -42,17 +48,18 @@ class UserInfoSerializer(UserSerializer):
         
 
 class GenresSerializer(serializers.ModelSerializer):
-
+    """Genre serializer"""
     class Meta:
         model = Genres
         fields = ('name', 'slug')
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
-
+    """Categories serializer"""
     class Meta:
         model = Categories
         fields = ('name', 'slug')
+
 
 class RatingRelatedField(serializers.PrimaryKeyRelatedField):
     pass
@@ -61,6 +68,7 @@ class RatingRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class TitlesSerializer(serializers.ModelSerializer):
+    """Titles serializer"""
     genre = serializers.SlugRelatedField(queryset=Genres.objects.all(), many=True, 
         slug_field='name'
     )
@@ -68,7 +76,7 @@ class TitlesSerializer(serializers.ModelSerializer):
         slug_field='name', queryset=Categories.objects.all()
     )
 
-    
+
     #rating = serializers.PrimaryKeyRelatedField(
        # slug_field='rating', queryset=Reviews.objects.all(),
        # default=serializers.CurrentUserDefault()
@@ -86,8 +94,8 @@ class TitlesSerializer(serializers.ModelSerializer):
         return value
 
 
- 
 class ReviewsSerializer(serializers.ModelSerializer):
+    """Reviews serializer"""
     author = serializers.SlugRelatedField(
         slug_field='username', queryset=User.objects.all(),
     )
@@ -97,6 +105,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Comment serializer"""
     class Meta:
         model = Comment
         fields = ('review', 'text', 'author', 'pub_date')
