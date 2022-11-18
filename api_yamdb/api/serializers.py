@@ -22,20 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
         return check_username(username)
 
 
-class EmailSerializer(serializers.ModelSerializer):
-    """Email serializer"""
-
-    class Meta:
-        model = User
-        fields = ('username', 'email',)
-
-    def validate_username(self, username):
-        return check_username(username)
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
 
 
-class ConfirmCodeSerializer(serializers.Serializer):
-    """Confirmation code serializer"""
-    username = serializers.CharField(required=True)
+class TokenSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
