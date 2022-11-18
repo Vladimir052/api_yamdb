@@ -21,3 +21,4 @@ urlpatterns = [
     path('v1/auth/token/', get_jwt_token, name='token'),
     path('v1/', include(router.urls)),
 ]
+
