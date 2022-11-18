@@ -4,7 +4,7 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from reviews.models import Categories, Genres, Reviews, Titles, User
+from reviews.models import Categories, Genres, Reviews, Titles, User, Comment
 
 from .validators import check_username
 
@@ -70,16 +70,17 @@ class RatingRelatedField(serializers.PrimaryKeyRelatedField):
 
 class TitlesSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(queryset=Genres.objects.all(), many=True, 
-        read_only=True, slug_field='titles'
+        slug_field='name'
     )
     category = serializers.SlugRelatedField(
-        slug_field='titles', queryset=Categories.objects.all()
+        slug_field='name', queryset=Categories.objects.all()
     )
 
-    rating = serializers.PrimaryKeyRelatedField(
-        slug_field='rating', queryset=Reviews.objects.all(),
-        default=serializers.CurrentUserDefault()
-    )
+    
+    #rating = serializers.PrimaryKeyRelatedField(
+       # slug_field='rating', queryset=Reviews.objects.all(),
+       # default=serializers.CurrentUserDefault()
+    #)
     
 
     class Meta:
@@ -95,9 +96,15 @@ class TitlesSerializer(serializers.ModelSerializer):
 
  
 class ReviewsSerializer(serializers.ModelSerializer):
-    #author = serializers.SlugRelatedField(
-        #slug_field='username', queryset=User.objects.all(),
-    #)
+    author = serializers.SlugRelatedField(
+        slug_field='username', queryset=User.objects.all(),
+    )
     class Meta:
         model = Reviews
         fields = ('text', 'author', 'score', 'pub_date')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('review', 'text', 'author', 'pub_date')
