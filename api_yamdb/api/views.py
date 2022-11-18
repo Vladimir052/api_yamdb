@@ -20,8 +20,9 @@ from .permissions import AdminOnly
 
 from .serializers import (CategoriesSerializer,
                           EmailSerializer, GenresSerializer,
-                          TitlesSerializer,
-                          TokenSerializer, UserInfoSerializer, UserSerializer)
+                          TitlesSerializer, ReviewsSerializer,
+                          TokenSerializer, UserInfoSerializer, CommentSerializer,
+                          UserSerializer)
 
 
 from .mixins import (ListCreateDeleteViewSet, UpdateDeleteViewSet,

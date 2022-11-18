@@ -3,7 +3,7 @@ from rest_framework import routers
 
 
 from .views import (CategoriesViewSet, GenresViewSet,CommentViewSet,
-                    TitlesViewSet, UserViewSet,
+                    TitlesViewSet, UserViewSet, ReviewsViewSet,
                     send_jwt_token, send_confirmation_code)
 
 
