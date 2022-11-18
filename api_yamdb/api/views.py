@@ -1,54 +1,71 @@
 import uuid
 
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Categories, Genres, Titles, User
 
-from .permissions import AdminOnly
-from .serializers import (CategoriesSerializer, ConfirmCodeSerializer,
-                          EmailSerializer, GenresSerializer, TitlesSerializer,
-                          UserInfoSerializer, UserSerializer)
-from .utils import send_confirm_code
+from reviews.models import Categories, Genres, Titles, User
+from .permissions import (AdminOnly)
+from .serializers import (CategoriesSerializer,
+                          EmailSerializer, GenresSerializer,
+                          TitlesSerializer,
+                          TokenSerializer, UserInfoSerializer, UserSerializer)
 
 # from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
 
 @api_view(['POST'])
-def confirmation_code(request):
-    """Send confirmation_code by email"""
+@permission_classes([permissions.AllowAny])
+def send_confirmation_code(request):
     serializer = EmailSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    email = serializer.validated_data['email']
-    if not User.objects.filter(username=username).exists():
-        user = User.objects.create_user(username=username, email=email)
-        send_confirm_code(user.email)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    user = get_object_or_404(User, username=username, email=email)
-    send_confirm_code(user.email)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    email = serializer.validated_data.get('email')
+    if not User.objects.filter(email=email).exists():
+        User.objects.create(
+            username=email, email=email
+        )
+    user = User.objects.filter(email=email).first()
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        'Код подтверждения',
+        f'Ваш код подтверждения: {confirmation_code}',
+        settings.DEFAULT_FROM_EMAIL,
+        [email]
+    )
+    return Response(
+        {'result': 'Код подтверждения успешно отправлен!'},
+        status=status.HTTP_200_OK
+    )
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
-def get_jwt_token(request):
-    """Check confirmation_code and send JWT-token"""
-    serializer = ConfirmCodeSerializer(data=request.data)
+@permission_classes([permissions.AllowAny])
+def send_jwt_token(request):
+    serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    user = get_object_or_404(User, username=username)
-    confirmation_code = serializer.validated_data['confirmation_code']
-    uuid_code = str(uuid.uuid3(uuid.NAMESPACE_DNS, user.email))
-    if uuid_code == confirmation_code:
+    email = serializer.validated_data.get('email')
+    confirmation_code = serializer.validated_data.get(
+        'confirmation_code'
+    )
+    user = get_object_or_404(User, email=email)
+    if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
-        return Response({'token': str(token)}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'token': str(token)}, status=status.HTTP_200_OK
+        )
+    return Response(
+        {'confirmation_code': 'Неверный код подтверждения!'},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 class UserViewSet(viewsets.ModelViewSet):
