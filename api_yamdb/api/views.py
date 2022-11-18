@@ -120,6 +120,7 @@ class CategoriesViewSet(ListCreateDeleteViewSet):
 class ReviewsViewSet(UpdateDeleteViewSet):
     queryset = Reviews.objects.all()
     serializer_class = ReviewsSerializer
+    
 
 class CommentViewSet(UpdateDeleteViewSet):
     queryset = Comment.objects.all()
