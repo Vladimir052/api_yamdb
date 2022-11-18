@@ -49,9 +49,20 @@ class User(AbstractUser):
         return self.username
 
 
+class Reviews(models.Model):
+    text = models.CharField(max_length=256)
+    author  = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score  = models.IntegerField()
+    pub_date  = models.DateField(auto_now_add=True)
+    def __str__(self):
+        return self.text
+
+
 class Comment(models.Model):
     review = models.ForeignKey(
-        Review,
+        Reviews,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='отзыв'
@@ -108,14 +119,3 @@ class Titles(models.Model):
     )
     def __str__(self):
         return self.name
-
-
-class Reviews(models.Model):
-    text = models.CharField(max_length=256)
-    author  = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews'
-    )
-    score  = models.IntegerField()
-    pub_date  = models.DateField(auto_now_add=True)
-    def __str__(self):
-        return self.text
