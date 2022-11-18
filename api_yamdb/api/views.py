@@ -1,6 +1,12 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
+<<<<<<< HEAD
+from reviews.models import Titles, Genres, Categories
+from rest_framework import filters, viewsets
+from django_filters import rest_framework as filters
+from .serializers import TitlesSerializer, CategoriesSerializer, GenresSerializer
+=======
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -16,6 +22,7 @@ from .serializers import (ConfirmCodeSerializer, EmailSerializer,
                           GenresSerializer)
 from .utils import send_confirm_code
 # from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
+>>>>>>> api/yamdb/24
 
 @api_view(['POST'])
 def confirmation_code(request):
@@ -74,17 +81,16 @@ class UserViewSet(viewsets.ModelViewSet):
         
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.select_related('author')
+    queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
+    #filter_backends = (DjangoFilterBackend,)
+    #filterset_fields = ('category__slug', 'genre__slug')
 
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
 
 class GenresViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
 
-class CategoriesiewSet(viewsets.ReadOnlyModelViewSet):
+class CategoriesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer

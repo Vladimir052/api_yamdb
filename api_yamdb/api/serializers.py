@@ -1,5 +1,8 @@
 from reviews.models import Titles, Genres, Categories, User, Reviews
 from rest_framework import serializers
+from datetime import datetime
+import datetime
+from django.core.exceptions import ValidationError
 
 from .validators import check_username
 
@@ -75,10 +78,18 @@ class TitlesSerializer(serializers.ModelSerializer):
         slug_field='rating', queryset=Reviews.objects.all(),
         default=serializers.CurrentUserDefault()
     )
+    
 
     class Meta:
         model = Titles
         fields = ('name', 'year', 'description', 'genre', 'category')
+
+    def validator_year(value):
+        current_year = datetime.datetime.now().year
+        if value > current_year:
+            raise ValidationError
+        return value
+
 
  
 class ReviewsSerializer(serializers.ModelSerializer):
