@@ -8,20 +8,24 @@ from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .permissions import AdminOrReadOnly
+
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.pagination import PageNumberPagination
+from reviews.models import Categories, Genres, Titles, User, Reviews, Comment
 
-from reviews.models import Categories, Genres, Titles, User
+from .permissions import AdminOnly
 
-from reviews.models import Categories, Genres, Titles, User
-from .permissions import (AdminOnly)
 from .serializers import (CategoriesSerializer,
                           EmailSerializer, GenresSerializer,
                           TitlesSerializer,
                           TokenSerializer, UserInfoSerializer, UserSerializer)
 
-# from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
+
+from .mixins import (ListCreateDeleteViewSet, UpdateDeleteViewSet,
+                     ListRetriveCreateDeleteViewSet)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -95,14 +99,27 @@ class UserViewSet(viewsets.ModelViewSet):
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
-    #filter_backends = (DjangoFilterBackend,)
-    #filterset_fields = ('category__slug', 'genre__slug')
+    filter_backends = (DjangoFilterBackend)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    pagination_class = PageNumberPagination
+    permission_classes = (AdminOrReadOnly,)
 
-
-class GenresViewSet(viewsets.ReadOnlyModelViewSet):
+class GenresViewSet(ListCreateDeleteViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name')
 
-class CategoriesViewSet(viewsets.ReadOnlyModelViewSet):
+class CategoriesViewSet(ListCreateDeleteViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name')
+
+class ReviewsViewSet(UpdateDeleteViewSet):
+    queryset = Reviews.objects.all()
+    serializer_class = ReviewsSerializer
+
+class CommentViewSet(UpdateDeleteViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer

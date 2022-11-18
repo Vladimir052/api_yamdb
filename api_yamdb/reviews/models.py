@@ -72,8 +72,8 @@ class Titles(models.Model):
     name = models.CharField(max_length=200)
     year  = models.IntegerField(validators=(validator_year,))
     description = models.TextField()
-    genre = models.ForeignKey(
-        Genres, on_delete=models.SET_NULL,
+    genre = models.ManyToManyField(
+        Genres,
         related_name='titles',
         blank=True,
         null=True
@@ -85,12 +85,18 @@ class Titles(models.Model):
         null=True
     )
 
-    class Meta:
-        unique_together = ('genre', 'category')
+
 
     def __str__(self):
         return self.name
 
+
+class TitlesGenres(models.Model):
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'({self.title.__str__()}, {self.genre.__str__()})'
 
 class Reviews(models.Model):
     text = models.TextField()
