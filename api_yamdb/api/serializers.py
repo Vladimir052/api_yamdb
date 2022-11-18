@@ -1,8 +1,10 @@
-from reviews.models import Titles, Genres, Categories, User, Reviews
-from rest_framework import serializers
-from datetime import datetime
 import datetime
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
+
+from reviews.models import Categories, Genres, Reviews, Titles, User
 
 from .validators import check_username
 

@@ -1,28 +1,23 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
-<<<<<<< HEAD
-from reviews.models import Titles, Genres, Categories
-from rest_framework import filters, viewsets
 from django_filters import rest_framework as filters
-from .serializers import TitlesSerializer, CategoriesSerializer, GenresSerializer
-=======
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import User, Titles, Genres, Categories
+
+from reviews.models import Categories, Genres, Titles, User
 
 from .permissions import AdminOnly
-from .serializers import (ConfirmCodeSerializer, EmailSerializer,
-                          UserInfoSerializer, UserSerializer, 
-                          TitlesSerializer, CategoriesSerializer, 
-                          GenresSerializer)
+from .serializers import (CategoriesSerializer, ConfirmCodeSerializer,
+                          EmailSerializer, GenresSerializer, TitlesSerializer,
+                          UserInfoSerializer, UserSerializer)
 from .utils import send_confirm_code
+
 # from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
->>>>>>> api/yamdb/24
 
 @api_view(['POST'])
 def confirmation_code(request):
