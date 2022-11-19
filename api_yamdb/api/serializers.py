@@ -65,8 +65,8 @@ class CategoriesSerializer(serializers.ModelSerializer):
     """Categories serializer"""
     class Meta:
         model = Categories
-        fields = ('name', 'slug')
-   
+        fields = ('name', 'slug')   
+
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Titles serializer"""

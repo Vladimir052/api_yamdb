@@ -112,16 +112,14 @@ class Reviews(models.Model):
     author  = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews',
-        unique=True
+        related_name='reviews'
     )
     score  = models.IntegerField()
     pub_date  = models.DateField(auto_now_add=True)
     title = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
-        related_name='reviews',
-        unique=True
+        related_name='reviews'
     )
 
     def __str__(self):
