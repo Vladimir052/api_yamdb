@@ -27,23 +27,18 @@ from .serializers import (CategoriesSerializer, CommentSerializer,
 def send_confirmation_code(request):
     serializer = EmailSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data.get('email')
-    if not User.objects.filter(email=email).exists():
-        User.objects.create(
-            username=email, email=email
-        )
-    user = User.objects.filter(email=email).first()
-    confirmation_code = default_token_generator.make_token(user)
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+    user = User.objects.create(username=username, email=email)
+    token = default_token_generator.make_token(user)
     send_mail(
-        'Код подтверждения',
-        f'Ваш код подтверждения: {confirmation_code}',
-        settings.DEFAULT_FROM_EMAIL,
-        [email]
+        subject='Ваш код для получения токена',
+        message=f'Код: {token}',
+        from_email='test@gmail.com',
+        recipient_list=[user.email],
+        fail_silently=False,
     )
-    return Response(
-        {'result': 'Код подтверждения успешно отправлен!'},
-        status=status.HTTP_200_OK
-    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -51,11 +46,11 @@ def send_confirmation_code(request):
 def send_jwt_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data.get('email')
     confirmation_code = serializer.validated_data.get(
         'confirmation_code'
     )
-    user = get_object_or_404(User, email=email)
+    username = serializer.validated_data['username']
+    user = get_object_or_404(User, username=username)
     if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         return Response(
