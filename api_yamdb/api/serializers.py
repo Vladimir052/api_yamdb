@@ -3,9 +3,8 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Categories, Genres, Reviews, Titles, User, Comment
-
 from .validators import check_username
 
 
@@ -22,16 +21,30 @@ class UserSerializer(serializers.ModelSerializer):
         return check_username(username)
 
 
-class EmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+class EmailSerializer(serializers.ModelSerializer):
+    """Email serializer"""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email',)
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise ValidationError('Запрещено использовать me')
+        return value
 
 
-class TokenSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+class TokenSerializer(serializers.ModelSerializer):
+    """Token serializer"""
+    confirmation_code = serializers.CharField(max_length=50,
+                                              required=True)
 
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code',)
 
 class UserInfoSerializer(UserSerializer):
+    """User info serializer"""
     role = serializers.CharField(read_only=True)
 
     class Meta:
@@ -42,28 +55,34 @@ class UserInfoSerializer(UserSerializer):
         
 
 class GenresSerializer(serializers.ModelSerializer):
-
+    """Genre serializer"""
     class Meta:
         model = Genres
         fields = ('name', 'slug')
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
-
+    """Categories serializer"""
     class Meta:
         model = Categories
         fields = ('name', 'slug')
-
+   
 
 class TitlesSerializer(serializers.ModelSerializer):
+    """Titles serializer"""
     genre = serializers.SlugRelatedField(queryset=Genres.objects.all(), many=True, 
         slug_field='name'
     )
     category = serializers.SlugRelatedField(
         slug_field='name', queryset=Categories.objects.all()
     )
-    
-    
+    validators = [
+        UniqueTogetherValidator(
+        queryset=Titles.objects.all(),
+        fields=('name')
+        )
+    ]
+
     #rating = serializers.PrimaryKeyRelatedField(
        # slug_field='rating', queryset=Reviews.objects.all(),
        # default=serializers.CurrentUserDefault()
@@ -87,9 +106,9 @@ class TitlesSerializer(serializers.ModelSerializer):
             raise ValidationError
         return value
 
-   
- 
+
 class ReviewsSerializer(serializers.ModelSerializer):
+    """Reviews serializer"""
     author = serializers.SlugRelatedField(
         slug_field='username', queryset=User.objects.all(),
     )
@@ -99,6 +118,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Comment serializer"""
     class Meta:
         model = Comment
         fields = ('review', 'text', 'author', 'pub_date')

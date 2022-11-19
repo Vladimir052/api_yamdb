@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
@@ -89,9 +87,9 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
-    name = models.CharField('Название', max_length=200, unique=True)
-    year  = models.IntegerField('Год выпуска', validators=(validator_year,))
-    description = models.TextField('Описание')
+    name = models.CharField(max_length=200, unique=True)
+    year  = models.IntegerField(validators=(validator_year,))
+    description = models.TextField()
     genre = models.ManyToManyField(
         Genres,
         related_name='titles',
@@ -118,19 +116,24 @@ class TitlesGenres(models.Model):
     genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'({self.title.__str__()}, {self.genre.__str__()})'
+        return f'({self.title.__str__()},{self.genre.__str__()})'
+
 
 class Reviews(models.Model):
     text = models.TextField('Текст отзыва')
     author  = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews',
-        verbose_name = 'Автор', unique=True
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        unique=True
     )
     score  = models.IntegerField('Оценка')
     pub_date  = models.DateField('Дата публикации отзыва', auto_now_add=True)
     title = models.ForeignKey(
-        Titles, on_delete=models.CASCADE, related_name='reviews',
-        verbose_name = 'Произведение', unique=True
+        Titles,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        unique=True
     )
 
     class Meta:

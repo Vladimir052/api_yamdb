@@ -20,14 +20,6 @@ class UpdateDeleteViewSet(
         return super().get_permissions()
 
 
-class ListRetriveCreateDeleteViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin,
-    mixins.DestroyModelMixin, mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
-
-
 class ListCreateDeleteViewSet(
     mixins.ListModelMixin, mixins.CreateModelMixin,
     mixins.DestroyModelMixin, viewsets.GenericViewSet

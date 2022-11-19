@@ -1,25 +1,26 @@
-import uuid
-
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .permissions import AdminOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.pagination import PageNumberPagination
-from reviews.models import Categories, Genres, Titles, User, Reviews, Comment
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
-from .permissions import AdminOnly
-from .serializers import (CategoriesSerializer, ConfirmCodeSerializer,
-                          EmailSerializer, GenresSerializer, TitlesSerializer,
-                          UserInfoSerializer, UserSerializer, ReviewsSerializer, CommentSerializer)
-from .utils import send_confirm_code
+from .mixins import (ListCreateDeleteViewSet,
+                     UpdateDeleteViewSet)
+from .permissions import (AdminOnly, AdminOrReadOnly,
+                        OwnerAdminModeratorOrReadOnly)
+from .serializers import (CategoriesSerializer, CommentSerializer,
+                          EmailSerializer, GenresSerializer, ReviewsSerializer,
+                          TitlesSerializer, TokenSerializer,
+                          UserInfoSerializer, UserSerializer)
 
-from .mixins import (ListCreateDeleteViewSet, UpdateDeleteViewSet,
-                     ListRetriveCreateDeleteViewSet)
 
 @api_view(['POST'])
 def confirmation_code(request):
@@ -28,12 +29,15 @@ def confirmation_code(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
-    if not User.objects.filter(username=username).exists():
-        user = User.objects.create_user(username=username, email=email)
-        send_confirm_code(user.email)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    user = get_object_or_404(User, username=username, email=email)
-    send_confirm_code(user.email)
+    user = User.objects.create(username=username, email=email)
+    token = default_token_generator.make_token(user)
+    send_mail(
+        subject='Ваш код для получения токена',
+        message=f'Код: {token}',
+        from_email='test@gmail.com',
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -43,11 +47,12 @@ def get_jwt_token(request):
     """Check confirmation_code and send JWT-token"""
     serializer = ConfirmCodeSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    confirmation_code = serializer.validated_data.get(
+        'confirmation_code'
+    )
     username = serializer.validated_data['username']
     user = get_object_or_404(User, username=username)
-    confirmation_code = serializer.validated_data['confirmation_code']
-    uuid_code = str(uuid.uuid3(uuid.NAMESPACE_DNS, user.email))
-    if uuid_code == confirmation_code:
+    if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -82,26 +87,25 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitlesSerializer
     filter_backends = (DjangoFilterBackend)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (AdminOrReadOnly,)
-
 
 
 class GenresViewSet(ListCreateDeleteViewSet):
+    lookup_field = 'slug'
     queryset = Genres.objects.all()
+    pagination_class = LimitOffsetPagination
     serializer_class = GenresSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
-    pagination_class = PageNumberPagination
-    permission_classes = (AdminOrReadOnly,)
 
 
 class CategoriesViewSet(ListCreateDeleteViewSet):
+    lookup_field = 'slug'
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
-    pagination_class = PageNumberPagination
     permission_classes = (AdminOrReadOnly,)
 
 
@@ -110,5 +114,16 @@ class ReviewsViewSet(UpdateDeleteViewSet):
     serializer_class = ReviewsSerializer
 
 class CommentViewSet(UpdateDeleteViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = (OwnerAdminModeratorOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        review = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Reviews, id=review_id, title=title_id)
+        serializer.save(author=self.request.user, review=review)
