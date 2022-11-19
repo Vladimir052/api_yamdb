@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .validators import validator_year
+from .validators import validate_score, validate_year
 
 
 class User(AbstractUser):
@@ -62,73 +62,99 @@ class User(AbstractUser):
         return self.role == self.ADMIN
 
 
-class Categories(models.Model):
+class Category(models.Model):
     name = models.TextField(max_length=256)
-    slug  = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.name
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.TextField(max_length=256)
-    slug  = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self):
         return self.name
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    year  = models.IntegerField(validators=(validator_year,))
+    year = models.IntegerField(validators=(validate_year,))
     description = models.TextField()
     genre = models.ManyToManyField(
-        Genres,
+        Genre,
         related_name='titles'
     )
     category = models.ForeignKey(
-        Categories, on_delete=models.SET_NULL,
+        Category, on_delete=models.SET_NULL,
         related_name='titles',
         blank=True,
         null=True
     )
 
-
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
     def __str__(self):
         return self.name
 
 
-class TitlesGenres(models.Model):
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
+class TitleGenre(models.Model):
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'({self.title.__str__()},{self.genre.__str__()})'
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     text = models.TextField()
-    author  = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score  = models.IntegerField()
-    pub_date  = models.DateField(auto_now_add=True)
+    score = models.IntegerField(
+        verbose_name='Оценка',
+        validators=[validate_score]
+    )
+    pub_date = models.DateField(auto_now_add=True)
     title = models.ForeignKey(
-        Titles,
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
 
+    class Meta:
+        ordering = ['pub_date']
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+            )
+        ]
+
     def __str__(self):
-        return self.text
+        return (
+            f'{self.text[:25]}'
+        )
 
 
 class Comment(models.Model):
     review = models.ForeignKey(
-        Reviews,
+        Review,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='отзыв'
