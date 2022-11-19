@@ -110,6 +110,7 @@ class CategoriesViewSet(ListCreateDeleteViewSet):
     serializer_class = CategoriesSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
+    permission_classes = (AdminOrReadOnly,)
 
 
 class ReviewsViewSet(UpdateDeleteViewSet):
