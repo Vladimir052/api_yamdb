@@ -12,10 +12,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
-from .mixins import (ListCreateDeleteViewSet,
-                     UpdateDeleteViewSet)
+from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
 from .permissions import (AdminOnly, AdminOrReadOnly,
-                        OwnerAdminModeratorOrReadOnly)
+                          OwnerAdminModeratorOrReadOnly)
 from .serializers import (CategoriesSerializer, CommentSerializer,
                           EmailSerializer, GenresSerializer, ReviewsSerializer,
                           TitlesSerializer, TokenSerializer,
@@ -102,6 +101,7 @@ class GenresViewSet(ListCreateDeleteViewSet):
     serializer_class = GenresSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('name')
+    permission_classes = (AdminOrReadOnly,)
 
 
 class CategoriesViewSet(ListCreateDeleteViewSet):
