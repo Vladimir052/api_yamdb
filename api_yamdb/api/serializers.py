@@ -79,6 +79,7 @@ class TitlesSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                  'description', 'genre', 'category')
 
+
 class TitlesCreateSerializer(serializers.ModelSerializer):
     """Titles create serializer"""
     genre = serializers.SlugRelatedField(

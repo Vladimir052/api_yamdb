@@ -104,7 +104,7 @@ class GenresViewSet(ListCreateDeleteViewSet):
     pagination_class = LimitOffsetPagination
     serializer_class = GenresSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    search_fields = ('name')
+    search_fields = ('name',)
     permission_classes = (AdminOrReadOnly,)
 
 
@@ -113,7 +113,7 @@ class CategoriesViewSet(ListCreateDeleteViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name')
+    search_fields = ('name',)
     permission_classes = (AdminOrReadOnly,)
 
 
