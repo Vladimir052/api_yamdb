@@ -21,20 +21,27 @@ class UserSerializer(serializers.ModelSerializer):
         return check_username(username)
 
 
-class EmailSerializer(serializers.Serializer):
+class EmailSerializer(serializers.ModelSerializer):
     """Email serializer"""
-    email = serializers.EmailField(required=True)
 
     class Meta:
         model = User
         fields = ('username', 'email',)
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise ValidationError('Запрещено использовать "me"')
+        return value
 
-class TokenSerializer(serializers.Serializer):
+
+class TokenSerializer(serializers.ModelSerializer):
     """Token serializer"""
-    email = serializers.EmailField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(max_length=50,
+                                              required=True)
 
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code',)
 
 class UserInfoSerializer(UserSerializer):
     """User info serializer"""
