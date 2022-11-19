@@ -23,7 +23,7 @@ from .serializers import (CategoriesSerializer, CommentSerializer,
 
 
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([AllowAny])
 def send_confirmation_code(request):
     serializer = EmailSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -42,7 +42,7 @@ def send_confirmation_code(request):
 
 
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([AllowAny])
 def send_jwt_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
