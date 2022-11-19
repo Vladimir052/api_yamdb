@@ -1,7 +1,7 @@
-from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 
 
 def check_username(username):
     if username == 'me':
-        raise serializers.ValidationError('использовать "me" запрещено!')
+        raise ValidationError('использовать "me" запрещено!')
     return username
