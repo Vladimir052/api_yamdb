@@ -3,8 +3,9 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 from rest_framework.validators import UniqueTogetherValidator
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
+
 from .validators import check_username
 
 
