@@ -4,7 +4,7 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
-
+from rest_framework.validators import UniqueTogetherValidator
 from .validators import check_username
 
 
@@ -30,7 +30,7 @@ class EmailSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if value == 'me':
-            raise ValidationError('Запрещено использовать "me"')
+            raise ValidationError('Запрещено использовать me')
         return value
 
 
@@ -66,13 +66,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categories
         fields = ('name', 'slug')
-
-
-class RatingRelatedField(serializers.PrimaryKeyRelatedField):
-    pass
-    #def display_value(self, instance):
-        #return 'Track: %s' % (instance.title)        
-
+   
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Titles serializer"""
@@ -82,7 +76,12 @@ class TitlesSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='name', queryset=Categories.objects.all()
     )
-
+    validators = [
+        UniqueTogetherValidator(
+        queryset=Titles.objects.all(),
+        fields=('name')
+        )
+    ]
 
     #rating = serializers.PrimaryKeyRelatedField(
        # slug_field='rating', queryset=Reviews.objects.all(),

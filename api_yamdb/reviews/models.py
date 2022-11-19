@@ -79,7 +79,7 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     year  = models.IntegerField(validators=(validator_year,))
     description = models.TextField()
     genre = models.ManyToManyField(
@@ -112,14 +112,16 @@ class Reviews(models.Model):
     author  = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
+        unique=True
     )
     score  = models.IntegerField()
     pub_date  = models.DateField(auto_now_add=True)
     title = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
+        unique=True
     )
 
     def __str__(self):
