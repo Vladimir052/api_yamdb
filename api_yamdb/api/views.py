@@ -11,15 +11,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
-
+from .filters import TitleFilter
 from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
 from .permissions import (AdminOnly, AdminOrReadOnly,
                           OwnerAdminModeratorOrReadOnly)
 from .serializers import (CategoriesSerializer, CommentSerializer,
                           EmailSerializer, GenresSerializer, ReviewsSerializer,
-                          TitlesSerializer, TokenSerializer,
+                          TitlesSerializer, TitlesCreateSerializer, TokenSerializer,
                           UserInfoSerializer, UserSerializer)
-
+from django.db.models import Avg
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -86,13 +86,17 @@ class UserViewSet(viewsets.ModelViewSet):
         
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Titles.objects.all().annotate(
+        rating=Avg('reviews__score')).order_by('category')
     serializer_class = TitlesSerializer
-    filter_backends = (DjangoFilterBackend)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filter_class = filterset_class = TitleFilter
     pagination_class = LimitOffsetPagination
     permission_classes = (AdminOrReadOnly,)
 
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return TitlesCreateSerializer
+        return TitlesSerializer
 
 class GenresViewSet(ListCreateDeleteViewSet):
     lookup_field = 'slug'
@@ -108,7 +112,7 @@ class CategoriesViewSet(ListCreateDeleteViewSet):
     lookup_field = 'slug'
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name')
     permission_classes = (AdminOrReadOnly,)
 
