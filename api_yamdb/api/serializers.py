@@ -3,7 +3,7 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-
+from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Categories, Genres, Reviews, Titles, User, Comment
 
 from .validators import check_username
@@ -54,11 +54,6 @@ class CategoriesSerializer(serializers.ModelSerializer):
         model = Categories
         fields = ('name', 'slug')
 
-class RatingRelatedField(serializers.PrimaryKeyRelatedField):
-    pass
-    #def display_value(self, instance):
-        #return 'Track: %s' % (instance.title)        
-
 
 class TitlesSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(queryset=Genres.objects.all(), many=True, 
@@ -67,7 +62,7 @@ class TitlesSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='name', queryset=Categories.objects.all()
     )
-
+    
     
     #rating = serializers.PrimaryKeyRelatedField(
        # slug_field='rating', queryset=Reviews.objects.all(),
@@ -79,13 +74,20 @@ class TitlesSerializer(serializers.ModelSerializer):
         model = Titles
         fields = ('name', 'year', 'description', 'genre', 'category')
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Titles.objects.all(),
+                fields=('name')
+            )
+        ]
+
     def validator_year(value):
         current_year = datetime.datetime.now().year
         if value > current_year:
             raise ValidationError
         return value
 
-
+   
  
 class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
