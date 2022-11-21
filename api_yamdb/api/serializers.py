@@ -23,10 +23,8 @@ class EmailSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email',)
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise ValidationError('Запрещено использовать me')
-        return value
+    def validate_username(self, username):
+        return check_username(username)
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -65,6 +63,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.IntegerField()
@@ -76,7 +75,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
-    """Titles create serializer"""
+
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         many=True,
@@ -93,6 +92,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+
     author = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
@@ -114,6 +114,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
