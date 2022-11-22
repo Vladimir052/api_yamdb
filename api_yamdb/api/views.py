@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title, User
 
+from api_yamdb.settings import EMAIL_HOST_USER
+
 from .filters import TitleFilter
 from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
 from .permissions import (AdminOnly, AdminOrReadOnly,
@@ -29,12 +31,12 @@ def send_confirmation_code(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
-    user = User.objects.create(username=username, email=email)
+    user, created = User.objects.get_or_create(username=username, email=email)
     token = default_token_generator.make_token(user)
     send_mail(
         subject='Ваш код для получения токена',
         message=f'Код: {token}',
-        from_email='test@gmail.com',
+        from_email=EMAIL_HOST_USER,
         recipient_list=[user.email],
         fail_silently=False,
     )
