@@ -13,7 +13,7 @@ def validate_year(value):
 
 
 def validate_score(value):
-    if value < 1  or value > 10:
+    if value < 1 or value > 10:
         raise ValidationError(
             ('Оценка должна быть от 1 до 10'),
             params={'value': value},

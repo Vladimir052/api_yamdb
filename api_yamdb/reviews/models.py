@@ -89,7 +89,10 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    year = models.PositiveIntegerField(validators=(validate_year,), db_index=True)
+    year = models.PositiveIntegerField(
+        validators=(validate_year,),
+        db_index=True
+    )
     description = models.TextField()
     genre = models.ManyToManyField(
         Genre,
