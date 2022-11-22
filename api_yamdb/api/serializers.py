@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
-from .validators import check_username
+from .validators import check_email, check_username
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,6 +25,9 @@ class EmailSerializer(serializers.ModelSerializer):
 
     def validate_username(self, username):
         return check_username(username)
+
+    def validate_email(self, email):
+        return check_email(email)
 
 
 class TokenSerializer(serializers.ModelSerializer):
