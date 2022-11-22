@@ -67,6 +67,7 @@ class Category(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
+        ordering = ['name']
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -88,7 +89,7 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    year = models.IntegerField(validators=(validate_year,))
+    year = models.PositiveIntegerField(validators=(validate_year,), db_index=True)
     description = models.TextField()
     genre = models.ManyToManyField(
         Genre,
@@ -102,6 +103,7 @@ class Title(models.Model):
     )
 
     class Meta:
+        ordering = ['category']
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
@@ -124,7 +126,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.IntegerField(
+    score = models.PositiveIntegerField(
         verbose_name='Оценка',
         validators=[validate_score]
     )
