@@ -6,7 +6,7 @@ from reviews.models import User
 def check_username(username):
     if User.objects.filter(username=username).exists():
         raise ValidationError('Имя уже занято.')
-    if username == 'me':
+    if username.lower() == 'me':
         raise ValidationError('Использовать "me" запрещено!')
     if username == '':
         raise ValidationError('Обязательно введите имя.')
