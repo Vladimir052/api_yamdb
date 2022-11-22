@@ -59,6 +59,12 @@ python3 manage.py makemigrations
 python3 manage.py migrate
 ```
 
+Заполнить базу тестовой информацией:
+
+```
+python manage.py closereviews
+```
+
 Запустить проект:
 
 ```
