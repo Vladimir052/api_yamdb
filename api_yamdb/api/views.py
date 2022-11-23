@@ -1,3 +1,4 @@
+from django.conf.global_settings import EMAIL_HOST_USER
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -11,8 +12,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title, User
-
-from api_yamdb.settings import EMAIL_HOST_USER
 
 from .filters import TitleFilter
 from .mixins import ListCreateDeleteViewSet, UpdateDeleteViewSet
